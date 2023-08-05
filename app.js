@@ -37,10 +37,19 @@ app.get('/', ( req, res, next ) => {
 // Single Item findOneById
 // Create new User user.save()
 // User.findByIdAndDelete()
-// TODO: Create Login functionatlity, add JWT
+// TODO: Create Login functionality, add JWT
 
-app.post('/login', (req,res) => {
-
+app.post('/login', async (req,res) => {
+	const user = await User.findOne({ email: req.body.email, password: req.body.password });
+	if ( user ){
+		const token = jwt.sign({user}, secretKey)
+		res.cookie('jwt', token, {
+			httpOnly: true,
+		})
+		res.json({token});
+	} else {
+		res.send("User is not in database")
+	}
 })
 app.post('/register', async ( req, res ) => {
 	console.log(req.body)
@@ -62,10 +71,11 @@ app.post('/register', async ( req, res ) => {
 		res.json({token});
 	}
 })
-
-// TODO: Create Logout Functionality
-app.get('/logout', ( req, res ) => {
-
+app.get('/logout', (req,res) => {
+	res.cookie('jwt', '', {
+		httpOnly: true,
+		expires: new Date(0)
+	})
 })
 app.listen(8000, () => {
 	console.log("Server is listening")
